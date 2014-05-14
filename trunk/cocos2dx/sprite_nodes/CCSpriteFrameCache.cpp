@@ -74,6 +74,7 @@ CCSpriteFrameCache::~CCSpriteFrameCache(void)
     CC_SAFE_RELEASE(m_pSpriteFrames);
     CC_SAFE_RELEASE(m_pSpriteFramesAliases);
     CC_SAFE_DELETE(m_pLoadedFileNames);
+	m_mapPlistName2TextureName.clear();
 }
 
 void CCSpriteFrameCache::addSpriteFramesWithDictionary(CCDictionary* dictionary, CCTexture2D *pobTexture)
@@ -270,6 +271,7 @@ void CCSpriteFrameCache::addSpriteFramesWithFile(const char *pszPlist)
         {
             addSpriteFramesWithDictionary(dict, pTexture);
             m_pLoadedFileNames->insert(pszPlist);
+			m_mapPlistName2TextureName.insert(make_pair(std::string(pszPlist), texturePath));
         }
         else
         {
@@ -341,7 +343,7 @@ void CCSpriteFrameCache::removeSpriteFrameByName(const char *pszName)
     m_pLoadedFileNames->clear();
 }
 
-void CCSpriteFrameCache::removeSpriteFramesFromFile(const char* plist)
+void CCSpriteFrameCache::removeSpriteFramesFromFile(const char* plist, CCSpriteFrameCache::eTextureOpration op)
 {
     std::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(plist);
     CCDictionary* dict = CCDictionary::createWithContentsOfFileThreadSafe(fullPath.c_str());
@@ -349,11 +351,23 @@ void CCSpriteFrameCache::removeSpriteFramesFromFile(const char* plist)
     removeSpriteFramesFromDictionary((CCDictionary*)dict);
 
     // remove it from the cache
-    set<string>::iterator ret = m_pLoadedFileNames->find(plist);
+	std::string strPlist(plist);
+    set<string>::iterator ret = m_pLoadedFileNames->find(strPlist);
     if (ret != m_pLoadedFileNames->end())
     {
         m_pLoadedFileNames->erase(ret);
     }
+	//
+	std::map<std::string, std::string>::iterator it = m_mapPlistName2TextureName.find(strPlist);
+	if (it != m_mapPlistName2TextureName.end())
+	{
+		if (op == TextureOpration_Remove)
+		{
+			const std::string& kTexName = it->second;
+			CCTextureCache::sharedTextureCache()->removeTextureForKey(kTexName.c_str());
+		}
+		m_mapPlistName2TextureName.erase(it);
+	}
 
     dict->release();
 }
