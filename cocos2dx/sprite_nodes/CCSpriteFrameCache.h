@@ -123,7 +123,14 @@ public:
     * It is convenient to call this method when a specific texture needs to be removed.
     * @since v0.99.5
     */
-    void removeSpriteFramesFromFile(const char* plist);
+	//oil_code
+	enum eTextureOpration
+	{
+		TextureOpration_None,
+		TextureOpration_Remove,
+	};
+    void removeSpriteFramesFromFile(const char* plist, eTextureOpration op = TextureOpration_None);
+
 
 private:
     /** Removes multiple Sprite Frames from CCDictionary.
@@ -160,6 +167,8 @@ protected:
     CCDictionary* m_pSpriteFrames;
     CCDictionary* m_pSpriteFramesAliases;
     std::set<std::string>*  m_pLoadedFileNames;
+	//oil_code
+	std::map<std::string, std::string> m_mapPlistName2TextureName;
 };
 
 // end of sprite_nodes group
